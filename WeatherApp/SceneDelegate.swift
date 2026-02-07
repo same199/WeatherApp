@@ -21,7 +21,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         window = UIWindow(windowScene: windowScene)
 
-        let controller = WeatherScreenViewController()
+        let controller = MVPAssembly().assemble()
         let navigationController = UINavigationController(rootViewController: controller)
         navigationController.setNavigationBarHidden(true, animated: false)
 

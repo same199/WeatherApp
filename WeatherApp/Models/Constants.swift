@@ -25,3 +25,7 @@ public enum Offsets: CGFloat {
 public enum ElementsSize: CGFloat {
     case setCityButtonWidthAndHeight = 40
 }
+
+public enum MenuSize: CGFloat {
+    case menuWidth = 300
+}
