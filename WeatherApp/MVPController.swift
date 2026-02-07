@@ -74,14 +74,13 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
         let backTap = UITapGestureRecognizer(target: self, action: #selector(tapDetected))
         view.addSubview(backView)
         backView.isHidden = true
-        backView.isUserInteractionEnabled = false
         backView.snp.makeConstraints{ make in
             make.top.equalToSuperview()
             make.left.equalToSuperview()
             make.right.equalToSuperview()
             make.bottom.equalToSuperview()
         }
-        backView.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
+        backView.backgroundColor = UIColor(white: 0.3, alpha: 0.5)
         backView.addGestureRecognizer(backTap)
         view.addSubview(viewMenu)
         viewMenu.backgroundColor = .white
@@ -90,6 +89,7 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
             make.top.bottom.equalToSuperview()
             make.width.equalTo(MenuSize.menuWidth.rawValue)
         }
+        viewMenu.layer.cornerRadius = CornerRadiusSize.defaultCornerRadiusSize.rawValue
         
         view.addSubview(locationNameLabel)
         locationNameLabel.snp.makeConstraints { make in
@@ -129,6 +129,9 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
             make.left.equalToSuperview().offset(0)
         }
         backView.isHidden = false
+        UIView.animate(withDuration: 0.3){
+            self.view.layoutIfNeeded()
+        }
 
     }
     
@@ -144,9 +147,10 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
     
     func updateView(with model: WeatherResponse) {
             // Обновляем лейблы
-            temperatureLabel.text = "\(model.current.temp)°C"
-            feelsLikeTemperatureLabel.text = "Feels like \(model.current.feelsLike)°C"
-            locationNameLabel.text = model.timezone
+        let city = model.timezone.split(separator: "/").last.map { String($0) } ?? model.timezone
+        temperatureLabel.text = "\(Int(model.current.temp.rounded()))°C"
+        feelsLikeTemperatureLabel.text = "Feels like \(Int(model.current.feelsLike.rounded()))°C"
+        locationNameLabel.text = city
         }
     
     func didUpdateLocation(latitude: Double, longitude: Double) {

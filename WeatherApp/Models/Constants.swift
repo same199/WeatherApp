@@ -29,3 +29,7 @@ public enum ElementsSize: CGFloat {
 public enum MenuSize: CGFloat {
     case menuWidth = 300
 }
+
+public enum CornerRadiusSize: CGFloat {
+    case defaultCornerRadiusSize = 16
+}
