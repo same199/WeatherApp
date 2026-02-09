@@ -20,33 +20,41 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
         let label = UILabel()
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: LabelTextSize.locationLabelTextSize.rawValue)
-        label.textColor = .white
-        label.text = "Minsk"
+        label.textColor = ElementsColors.labelColor.color
+        label.text = DefaultTextForLabels.locationLabelText.rawValue
         return label
     }()
     private let temperatureLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: LabelTextSize.temperatureLabelTextSize.rawValue)
-        label.textColor = .white
-        label.text = "36.6"
+        label.textColor = ElementsColors.labelColor.color
+        label.text = DefaultTextForLabels.temperatureLabelText.rawValue
         return label
     }()
     private let feelsLikeTemperatureLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: LabelTextSize.feelsLikeTemperatureLabelTextSize.rawValue)
-        label.textColor = .white
-        label.text = "Feels like 34.1"
+        label.font = UIFont.systemFont(ofSize: LabelTextSize.feelsLikeTemperatureAndWindLabelTextSize.rawValue)
+        label.textColor = ElementsColors.labelColor.color
+        label.text = DefaultTextForLabels.feelsLikeTemperatureLabelText.rawValue
+        return label
+    }()
+    private let windDirectionLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .center
+        label.font = UIFont.boldSystemFont(ofSize: LabelTextSize.feelsLikeTemperatureAndWindLabelTextSize.rawValue)
+        label.textColor = ElementsColors.labelColor.color
+        label.text = DefaultTextForLabels.windLabelText.rawValue
         return label
     }()
     private let setCityButton: UIButton = {
         let button = UIButton()
         button.setTitle("☰", for: .normal)
         button.titleLabel?.textAlignment = .center
-        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(ElementsColors.labelColor.color, for: .normal)
         button.backgroundColor = .clear
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 24)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: LabelTextSize.setCityButtonTitleTextSize.rawValue)
         return button
     }()
     
@@ -117,6 +125,12 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
             action: #selector(setCityButtonTapped),
             for: .touchUpInside
         )
+        view.addSubview(windDirectionLabel)
+        windDirectionLabel.snp.makeConstraints { make in
+            make.top.equalTo(feelsLikeTemperatureLabel.snp.bottom).offset(Offsets.locationLabelBottomOffset.rawValue)
+            make.centerX.equalToSuperview()
+            
+        }
     }
     @objc private func setCityButtonTapped() {
         presenter.showCityLIst()
@@ -151,6 +165,31 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
         temperatureLabel.text = "\(Int(model.current.temp.rounded()))°C"
         feelsLikeTemperatureLabel.text = "Feels like \(Int(model.current.feelsLike.rounded()))°C"
         locationNameLabel.text = city
+        let windDirection = model.current.windDeg
+        
+        switch windDirection {
+            case 0..<22.5:
+            windDirectionLabel.text = WindDirection.north.rawValue
+        case 22.5..<67.5:
+            windDirectionLabel.text = WindDirection.northEast.rawValue
+        case 67.5..<112.5:
+            windDirectionLabel.text = WindDirection.east.rawValue
+        case 112.5..<157.5:
+            windDirectionLabel.text = WindDirection.southEast.rawValue
+        case 157.5..<202.5:
+            windDirectionLabel.text = WindDirection.south.rawValue
+        case 202.5..<247.5:
+            windDirectionLabel.text = WindDirection.southWest.rawValue
+        case 247.5..<292.5:
+            windDirectionLabel.text = WindDirection.west.rawValue
+        case 292.5..<337.5:
+            windDirectionLabel.text = WindDirection.northWest.rawValue
+        case 337.5...360:
+            windDirectionLabel.text = WindDirection.north.rawValue
+        default:
+            windDirectionLabel.text = "Something wrong"
+        }
+        
         }
     
     func didUpdateLocation(latitude: Double, longitude: Double) {

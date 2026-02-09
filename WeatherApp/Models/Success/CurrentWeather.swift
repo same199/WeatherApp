@@ -20,7 +20,7 @@ struct CurrentWeather: Decodable {
     let clouds: Int
     let visibility: Int
     let windSpeed: Double
-    let windDeg: Int
+    let windDeg: Double
     let weather: [WeatherCondition]
 
     enum CodingKeys: String, CodingKey {
