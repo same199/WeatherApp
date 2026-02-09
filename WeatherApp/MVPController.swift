@@ -69,7 +69,6 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
     }
     private let locationManager = GeoAndLocationManager()
     
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
@@ -98,7 +97,6 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
             make.width.equalTo(MenuSize.menuWidth.rawValue)
         }
         viewMenu.layer.cornerRadius = CornerRadiusSize.defaultCornerRadiusSize.rawValue
-        
         view.addSubview(locationNameLabel)
         locationNameLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
@@ -129,15 +127,17 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
         windDirectionLabel.snp.makeConstraints { make in
             make.top.equalTo(feelsLikeTemperatureLabel.snp.bottom).offset(Offsets.locationLabelBottomOffset.rawValue)
             make.centerX.equalToSuperview()
-            
         }
     }
+    
     @objc private func setCityButtonTapped() {
         presenter.showCityLIst()
     }
+    
     @objc func tapDetected() {
         presenter.hideMenu()
     }
+    
     func showCityListMenu() {
         viewMenu.snp.updateConstraints{make in
             make.left.equalToSuperview().offset(0)
@@ -146,7 +146,6 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
         UIView.animate(withDuration: 0.3){
             self.view.layoutIfNeeded()
         }
-
     }
     
     func hideMenu(){
@@ -160,15 +159,14 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
     }
     
     func updateView(with model: WeatherResponse) {
-            // Обновляем лейблы
+        // Обновляем лейблы
         let city = model.timezone.split(separator: "/").last.map { String($0) } ?? model.timezone
         temperatureLabel.text = "\(Int(model.current.temp.rounded()))°C"
         feelsLikeTemperatureLabel.text = "Feels like \(Int(model.current.feelsLike.rounded()))°C"
         locationNameLabel.text = city
         let windDirection = model.current.windDeg
-        
         switch windDirection {
-            case 0..<22.5:
+        case 0..<22.5:
             windDirectionLabel.text = WindDirection.north.rawValue
         case 22.5..<67.5:
             windDirectionLabel.text = WindDirection.northEast.rawValue
@@ -189,14 +187,13 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
         default:
             windDirectionLabel.text = "Something wrong"
         }
-        
-        }
+    }
     
     func didUpdateLocation(latitude: Double, longitude: Double) {
         presenter.fetchWeather(lat: latitude, lon: longitude)
-        }
+    }
     
     func didFailWithError(_ error: Error) {
-            print("Ошибка локации: \(error.localizedDescription)")
-        }
+        print("Ошибка локации: \(error.localizedDescription)")
+    }
 }

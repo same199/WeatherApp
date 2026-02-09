@@ -22,7 +22,12 @@ final class GeoAndLocationManager: NSObject, CLLocationManagerDelegate {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-        locationManager.requestWhenInUseAuthorization()
+        if locationManager.authorizationStatus == .authorizedWhenInUse ||
+               locationManager.authorizationStatus == .authorizedAlways {
+                locationManager.requestLocation()
+            } else {
+                locationManager.requestWhenInUseAuthorization()
+            }
     }
     
     func requestLocationOnce() {
@@ -43,6 +48,22 @@ final class GeoAndLocationManager: NSObject, CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         delegate?.didFailWithError(error)
+    }
+    
+    func locationManager(
+        _ manager: CLLocationManager,
+        didChangeAuthorization status: CLAuthorizationStatus
+    ) {
+        switch status {
+        case .authorizedWhenInUse, .authorizedAlways:
+            manager.requestLocation()
+        case .denied, .restricted:
+            print("Нет доступа к геолокации")
+        case .notDetermined:
+            break
+        @unknown default:
+            break
+        }
     }
 }
 
