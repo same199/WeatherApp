@@ -23,10 +23,14 @@ final class MVPPresenter: IMVPPresenter {
     private var savedCities: [CityResponse] = []
     private weak var view: IMVPView?
     private let networkManager = NetworkManager()
+    private let saveLoadManager = SaveLoadManager()
 
-        init(){}
+        init(){
+            self.savedCities = saveLoadManager.loadCities()
+        }
     func attachView(_ view: IMVPView) {
             self.view = view
+        view.reloadCityMenu(with: savedCities)
         }
     
     func fetchWeather(lat: Double, lon: Double) {
@@ -40,6 +44,7 @@ final class MVPPresenter: IMVPPresenter {
             guard let city = cities.first else { return }
             
             self?.savedCities.append(city)
+            self?.saveLoadManager.saveCities(self?.savedCities ?? [])
             self?.view?.reloadCityMenu(with: self?.savedCities ?? [])
         }
     }

@@ -16,9 +16,9 @@ protocol IMVPView: AnyObject{
     func showAddCityAlert()
 }
 final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDelegate, UITableViewDataSource, UITableViewDelegate  {
-
+    
     private var cities: [CityResponse] = []
-
+    
     private let locationNameLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
@@ -146,13 +146,13 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
         
         viewMenu.addSubview(tableView)
         viewMenu.addSubview(addCityButton)
-
+        
         tableView.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(Offsets.tableViewTopOffset.rawValue)
             make.left.right.equalToSuperview()
             make.bottom.equalTo(addCityButton.snp.top).offset(-(Offsets.tableViewBottomOffset.rawValue))
         }
-
+        
         addCityButton.snp.makeConstraints { make in
             make.left.right.equalToSuperview()
             make.bottom.equalToSuperview().offset(-(Offsets.tableViewBottomOffset.rawValue))
@@ -197,7 +197,7 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
     }
     
     func updateView(with model: WeatherResponse) {
-        // Обновляем лейблы
+        
         let city = model.timezone.split(separator: "/").last.map { String($0) } ?? model.timezone
         temperatureLabel.text = "\(Int(model.current.temp.rounded())) \(TemperatureUnit.celsius.rawValue)"
         feelsLikeTemperatureLabel.text = "\(TemperatureUnit.feelsLikeCelsius.rawValue) \(Int(model.current.feelsLike.rounded()))\(TemperatureUnit.celsius.rawValue)"
@@ -248,9 +248,7 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
             
             self?.presenter.searchCity(named: text)
         })
-        
         alert.addAction(UIAlertAction(title: AddCityAlert.alertCancelButtonTitle.rawValue, style: .cancel))
-        
         present(alert, animated: true)
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -265,16 +263,15 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
                    numberOfRowsInSection section: Int) -> Int {
         return cities.count
     }
-
+    
     func tableView(_ tableView: UITableView,
                    cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
-
+        
         let city = cities[indexPath.row]
         cell.textLabel?.text = city.name
         cell.detailTextLabel?.text = city.Country
-
+        
         return cell
     }
     
