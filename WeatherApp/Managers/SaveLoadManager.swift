@@ -29,7 +29,6 @@ final class SaveLoadManager {
         guard let data = defaults.data(forKey: Keys.savedCityKey.rawValue) else {
             return []
         }
-
         do {
             return try JSONDecoder().decode([CityResponse].self, from: data)
         } catch {

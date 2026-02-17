@@ -38,7 +38,6 @@ final class GeoAndLocationManager: NSObject, CLLocationManagerDelegate {
         locationManager.stopUpdatingLocation()
     }
     
-    
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         delegate?.didUpdateLocation(latitude: location.coordinate.latitude,
