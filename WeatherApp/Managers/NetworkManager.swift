@@ -42,4 +42,25 @@ class NetworkManager: INetworkManager {
             }
         }.resume()
     }
+    
+    func searchCity(name: String, completion: @escaping ([CityResponse]) -> Void) {
+        let encodedName = name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? name
+        
+        let query = "q=\(encodedName)&limit=5&appid=\(APIKeys.openWeatherToken.rawValue)"
+        
+        guard let url = URL(string: "\(Params.baseCityURL.rawValue)\(query)") else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data, error == nil else { return }
+            
+            do {
+                let cities = try JSONDecoder().decode([CityResponse].self, from: data)
+                DispatchQueue.main.async {
+                    completion(cities)
+                }
+            } catch {
+                print("Ошибка декодирования городов:, \(error)")
+            }
+        }.resume()
+    }
 }

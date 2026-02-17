@@ -12,10 +12,13 @@ protocol IMVPView: AnyObject{
     func updateView(with model: WeatherResponse)
     func showCityListMenu()
     func hideMenu()
+    func reloadCityMenu(with cities: [CityResponse])
+    func showAddCityAlert()
 }
-final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDelegate {
-    let viewMenu = UIView()
-    let backView = UIView()
+final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDelegate, UITableViewDataSource, UITableViewDelegate  {
+
+    private var cities: [CityResponse] = []
+
     private let locationNameLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
@@ -50,11 +53,20 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
     }()
     private let setCityButton: UIButton = {
         let button = UIButton()
-        button.setTitle("☰", for: .normal)
+        button.setTitle(ButtonTitle.setCityButtonTitle.rawValue, for: .normal)
         button.titleLabel?.textAlignment = .center
         button.setTitleColor(ElementsColors.labelColor.color, for: .normal)
         button.backgroundColor = .clear
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: LabelTextSize.setCityButtonTitleTextSize.rawValue)
+        return button
+    }()
+    let viewMenu = UIView()
+    let backView = UIView()
+    private let tableView = UITableView()
+    private let addCityButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle(ButtonTitle.addCityButtonTitle.rawValue, for: .normal)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
         return button
     }()
     
@@ -77,26 +89,11 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
     }
     
     private func configureUI(){
+        tableView.dataSource = self
+        tableView.delegate = self
         view.backgroundColor = .black
         let backTap = UITapGestureRecognizer(target: self, action: #selector(tapDetected))
-        view.addSubview(backView)
-        backView.isHidden = true
-        backView.snp.makeConstraints{ make in
-            make.top.equalToSuperview()
-            make.left.equalToSuperview()
-            make.right.equalToSuperview()
-            make.bottom.equalToSuperview()
-        }
-        backView.backgroundColor = UIColor(white: 0.3, alpha: 0.5)
-        backView.addGestureRecognizer(backTap)
-        view.addSubview(viewMenu)
-        viewMenu.backgroundColor = .white
-        viewMenu.snp.makeConstraints{ make in
-            make.left.equalToSuperview().offset(-(MenuSize.menuWidth.rawValue))
-            make.top.bottom.equalToSuperview()
-            make.width.equalTo(MenuSize.menuWidth.rawValue)
-        }
-        viewMenu.layer.cornerRadius = CornerRadiusSize.defaultCornerRadiusSize.rawValue
+        
         view.addSubview(locationNameLabel)
         locationNameLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
@@ -128,6 +125,44 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
             make.top.equalTo(feelsLikeTemperatureLabel.snp.bottom).offset(Offsets.locationLabelBottomOffset.rawValue)
             make.centerX.equalToSuperview()
         }
+        view.addSubview(backView)
+        backView.isHidden = true
+        backView.snp.makeConstraints{ make in
+            make.top.equalToSuperview()
+            make.left.equalToSuperview()
+            make.right.equalToSuperview()
+            make.bottom.equalToSuperview()
+        }
+        backView.backgroundColor = UIColor(white: 0.3, alpha: 0.5)
+        backView.addGestureRecognizer(backTap)
+        view.addSubview(viewMenu)
+        viewMenu.backgroundColor = .white
+        viewMenu.snp.makeConstraints{ make in
+            make.left.equalToSuperview().offset(-(MenuSize.menuWidth.rawValue))
+            make.top.bottom.equalToSuperview()
+            make.width.equalTo(MenuSize.menuWidth.rawValue)
+        }
+        viewMenu.layer.cornerRadius = CornerRadiusSize.defaultCornerRadiusSize.rawValue
+        
+        viewMenu.addSubview(tableView)
+        viewMenu.addSubview(addCityButton)
+
+        tableView.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(Offsets.tableViewTopOffset.rawValue)
+            make.left.right.equalToSuperview()
+            make.bottom.equalTo(addCityButton.snp.top).offset(-(Offsets.tableViewBottomOffset.rawValue))
+        }
+
+        addCityButton.snp.makeConstraints { make in
+            make.left.right.equalToSuperview()
+            make.bottom.equalToSuperview().offset(-(Offsets.tableViewBottomOffset.rawValue))
+            make.height.equalTo(TableViewRowHeight.defaultRowHeight.rawValue)
+        }
+        addCityButton.addTarget(
+            self,
+            action: #selector(addCityTapped),
+            for: .touchUpInside
+        )
     }
     
     @objc private func setCityButtonTapped() {
@@ -136,6 +171,9 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
     
     @objc func tapDetected() {
         presenter.hideMenu()
+    }
+    @objc private func addCityTapped() {
+        presenter.showAddCityAlert()
     }
     
     func showCityListMenu() {
@@ -161,8 +199,8 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
     func updateView(with model: WeatherResponse) {
         // Обновляем лейблы
         let city = model.timezone.split(separator: "/").last.map { String($0) } ?? model.timezone
-        temperatureLabel.text = "\(Int(model.current.temp.rounded()))°C"
-        feelsLikeTemperatureLabel.text = "Feels like \(Int(model.current.feelsLike.rounded()))°C"
+        temperatureLabel.text = "\(Int(model.current.temp.rounded())) \(TemperatureUnit.celsius.rawValue)"
+        feelsLikeTemperatureLabel.text = "\(TemperatureUnit.feelsLikeCelsius.rawValue) \(Int(model.current.feelsLike.rounded()))\(TemperatureUnit.celsius.rawValue)"
         locationNameLabel.text = city
         let windDirection = model.current.windDeg
         switch windDirection {
@@ -196,4 +234,48 @@ final class MVPController: UIViewController, IMVPView, GeoAndLocationManagerDele
     func didFailWithError(_ error: Error) {
         print("Ошибка локации: \(error.localizedDescription)")
     }
+    
+    func showAddCityAlert() {
+        let alert = UIAlertController(title: AddCityAlert.alertTitle.rawValue,
+                                      message: AddCityAlert.alertMessage.rawValue,
+                                      preferredStyle: .alert)
+        
+        alert.addTextField()
+        
+        alert.addAction(UIAlertAction(title: AddCityAlert.alertSearchButtonTitle.rawValue, style: .default) { [weak self] _ in
+            guard let text = alert.textFields?.first?.text,
+                  !text.isEmpty else { return }
+            
+            self?.presenter.searchCity(named: text)
+        })
+        
+        alert.addAction(UIAlertAction(title: AddCityAlert.alertCancelButtonTitle.rawValue, style: .cancel))
+        
+        present(alert, animated: true)
+    }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        presenter.didSelectCity(at: indexPath.row)
+    }
+    
+    func reloadCityMenu(with cities: [CityResponse]) {
+        self.cities = cities
+        tableView.reloadData()
+    }
+    func tableView(_ tableView: UITableView,
+                   numberOfRowsInSection section: Int) -> Int {
+        return cities.count
+    }
+
+    func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
+
+        let city = cities[indexPath.row]
+        cell.textLabel?.text = city.name
+        cell.detailTextLabel?.text = city.Country
+
+        return cell
+    }
+    
 }
